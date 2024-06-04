@@ -216,8 +216,8 @@ rows.forEach((row, index) => {
      const  options = [
         'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
       ]
-      import { useQuery } from "vue-query";
-const { data: all, isLoading: isLoading, error: error, refetch: refetch } = useQuery();
+//       import { useQuery } from "vue-query";
+// const { data: all, isLoading: isLoading, error: error, refetch: refetch } = useQuery();
 
       const onSubmit = () => {
       

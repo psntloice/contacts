@@ -143,7 +143,7 @@ const rows = [
      const filter = ref('')
      
       
-      onSubmit = () => {
+     const onSubmit = () => {
        
           $q.notify({
             color: 'green-4',
@@ -152,9 +152,9 @@ const rows = [
             message: 'Submitted'
           })
         
-      },
+      }
 
-      onReset = () => {
+    const  onReset = () => {
         name.value = null
       }
   
