@@ -44,9 +44,11 @@ console.log("heyo");
       console.log("rtyu fg", this.allGroups);
       return this.allGroups;
     },
-    async createGroups(cont) {
-      const res_create_group = await post_call_module(cont,"contacts");
+    async createGroups(groupData) {
+      console.log("mygn",groupData);
 
+      const res_create_group = await post_call_module(groupData,"groups");
+console.log("myg",groupData);
       return res_create_group;
     },
 

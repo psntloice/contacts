@@ -114,8 +114,10 @@ const columns = [
     const $q = useQuasar();
     const gname = ref('');
 const description = ref('');
+
     const { mutate: createGroup, isLoading2 } = useMutation({
   mutationFn: async (groupData) => {
+    console.log("we here1", groupData);
     await contactStore.createGroups(groupData);
     console.log("we here");
     $q.notify({
@@ -183,6 +185,7 @@ if (selectedGroupId.value!==null) {
   await updateGroup({ groupId, groupData });
     
 } else {
+  console.log("gvalue",groupData);
 await createGroup(groupData);
   
 }
@@ -195,5 +198,8 @@ selectedGroupId.value = null;
       gname.value = '';
       description.value = '';
   
-    }   
+    }  
+    const  removeContact= (row, contact) => {
+      console.log("myrow", row, contact);
+    } 
 </script>
