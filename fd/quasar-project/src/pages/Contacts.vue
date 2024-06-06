@@ -50,7 +50,7 @@
     dense
     options-dense
     emit-value
-    :options="groupOptions"
+    :options=groupOptions
     option-value="group_name"
     option-label="group_name"
     options-cover
@@ -122,19 +122,20 @@ import { useContactStore } from "src/stores/contact_store";
 import { useQuery, useMutation } from "vue-query";
 
 const contactStore = useContactStore();
-const { data: allContacts, isLoading: isLoading, error: error, refetch: refetch } = useQuery("contacts", contactStore.fetchContacts);
+const { data: allContacts, isLoading: isLoading, error: error, refetch: refetch } = useQuery("contactsyfkjb", contactStore.fetchContacts);
 
 const { data: allGroups, isLoading: isLoadingG, error: errorG, refetch: refetchG } = useQuery("contacts", contactStore.fetchGroups);
 
 const groupOptions = computed(() => {
   const groupsSet = new Set();
-  allGroups.value?.forEach(contact => {
-    contact.groups?.forEach(group => {
-      groupsSet.add({ id: group.id, group_name: group.group_name });
+  allGroups.value?.forEach(group => {
+      groupsSet.add(group.group_name);
     });
-  });
   return Array.from(groupsSet).map(group_name => ({ group_name }));
 });
+
+console.log(groupOptions);
+
 const $q = useQuasar();
 const fname = ref('');
 const lname = ref('');

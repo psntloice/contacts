@@ -79,8 +79,8 @@
             <q-separator />
             
               <q-card-actions align="right">
-                <q-btn flat label="Edit" @click="editGroup(props.row)" />
-                <q-btn flat label="Delete" color="negative" @click="deleteGroup(props.row)" />
+                <q-btn flat label="Edit" @click="onUpdate(props.row)" />
+                <q-btn flat label="Delete" color="negative" @click="onDelete(props.row)" />
               </q-card-actions>
           </q-card>
         </div>
@@ -136,6 +136,7 @@ const { mutate: deleteGroup } = useMutation({
             icon: 'cloud_done',
             message: 'Group Deleted'
           })
+          console.log(groupId);
   },
 });
 
