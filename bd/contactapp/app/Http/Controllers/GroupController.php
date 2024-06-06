@@ -10,6 +10,8 @@ class GroupController extends Controller
 {
     public function index()
     {
+        $contacts = Groups::with('contacts')->get();
+//   return response()->json($contacts); 
         return GroupResource::collection(Groups::with('contacts')->get());
     }
 

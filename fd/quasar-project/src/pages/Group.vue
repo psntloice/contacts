@@ -1,5 +1,6 @@
 <template>
   <div class="q-pa-md">
+    
     <div class="q-pa-md" style="max-width: 400px">
 
 <q-form
@@ -9,7 +10,7 @@
 >
   <q-input
     filled
-    v-model="name"
+    v-model="gname"
     label="Name *"
     hint="Name of group"
     lazy-rules
@@ -17,7 +18,7 @@
   />
   <q-input
     filled
-    v-model="name"
+    v-model="description"
     label="Description"
     
   />
@@ -30,132 +31,168 @@
 </q-form>
 
 </div>
+<div v-if="isLoading">Loading... 
+ </div>
+
+  <div v-else class="q-pa-md">
     <q-table
-      flat bordered
+      :rows= allGroups
+      :columns = "columns"
+      row-key="group_name"
       grid
-      title="Treats"
-      :rows="rows"
-      :columns="columns"
-      row-key="name"
-      :filter="filter"
+       flat bordered
       hide-header
     >
-      <template v-slot:top-right>
-        <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
-          <template v-slot:append>
-            <q-icon name="search" />
-          </template>
-        </q-input>
+    <template v-slot:item="props">
+ <div
+          class="q-pa-xs col-xs-12 col-sm-6 col-md-4 col-lg-3 grid-style-transition"
+          :style="props.selected ? 'transform: scale(0.95);' : ''">
+          <q-card bordered  :class="props.selected ? ($q.dark.isActive ? 'bg-grey-9' : 'bg-grey-2') : ''">
+
+            <q-card-section class="text-center">
+<q-toolbar class="bg-primary text-white shadow-2">
+      <q-toolbar-title><strong>{{ props.row.group_name }}</strong></q-toolbar-title>
+    </q-toolbar>
+              
+            </q-card-section>
+            <q-separator />
+            <q-list bordered>
+             
+               <q-item v-for="contact in props.row.contacts" :key="contact.id" class="q-my-sm" clickable v-ripple>
+        <q-item-section avatar>
+          <q-avatar color="primary" text-color="white">
+            {{ contact.letter }}
+          </q-avatar>
+        </q-item-section>
+
+        <q-item-section>
+          <q-item-label>{{ contact.first_name }}</q-item-label>
+          <q-item-label caption lines="1">{{ contact.email }}</q-item-label>
+        </q-item-section>
+
+       
+        <q-item-section side top>
+          <q-item-label caption lines="1"><q-btn flat icon="delete" @click="removeContact(props.row, contact)" /></q-item-label>
+                  </q-item-section>
+      </q-item>
+            </q-list>
+            <q-separator />
+            
+              <q-card-actions align="right">
+                <q-btn flat label="Edit" @click="editGroup(props.row)" />
+                <q-btn flat label="Delete" color="negative" @click="deleteGroup(props.row)" />
+              </q-card-actions>
+          </q-card>
+        </div>
       </template>
     </q-table>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import { useContactStore } from "src/stores/contact_store";
+const contactStore = useContactStore();
+import { useQuery, useMutation } from "vue-query";
+const { data: allGroups, isLoading: isLoading, error: error, refetch: refetch } = useQuery("contacts", contactStore.fetchGroups);
 
 const columns = [
-  {
-    name: 'desc',
-    required: true,
-    label: 'Dessert (100g serving)',
-    align: 'left',
-    field: row => row.name,
-    format: val => `${val}`,
-    sortable: true
+  { name: 'group_name', required: true, label: 'Group Name', field: 'group_name', sortable: true, align: 'left' },
+  { name: 'description', label: 'Description', field: 'description', sortable: true, align: 'left' },
+  { 
+    name: 'contacts', 
+    label: 'Contacts', 
+    field: 'contacts', 
+    sortable: false, 
+    align: 'left', 
+    format: contacts => contacts.map(contact => contact.first_name + ' ' + contact.last_name).join(', ') 
   },
-  { name: 'calories', align: 'center', label: 'Calories', field: 'calories', sortable: true },
-  { name: 'fat', label: 'Fat (g)', field: 'fat', sortable: true },
-  { name: 'carbs', label: 'Carbs (g)', field: 'carbs' }
-]
+];
 
-const rows = [
-  {
-    name: 'Frozen Yogurt',
-    calories: 159,
-    fat: 6.0,
-    carbs: 24
-  },
-  {
-    name: 'Ice cream sandwich',
-    calories: 237,
-    fat: 9.0,
-    carbs: 37
-  },
-  {
-    name: 'Eclair',
-    calories: 262,
-    fat: 16.0,
-    carbs: 23
-  },
-  {
-    name: 'Cupcake',
-    calories: 305,
-    fat: 3.7,
-    carbs: 67
-  },
-  {
-    name: 'Gingerbread',
-    calories: 356,
-    fat: 16.0,
-    carbs: 49
-  },
-  {
-    name: 'Jelly bean',
-    calories: 375,
-    fat: 0.0,
-    carbs: 94
-  },
-  {
-    name: 'Lollipop',
-    calories: 392,
-    fat: 0.2,
-    carbs: 98
-  },
-  {
-    name: 'Honeycomb',
-    calories: 408,
-    fat: 3.2,
-    carbs: 87
-  },
-  {
-    name: 'Donut',
-    calories: 452,
-    fat: 25.0,
-    carbs: 51
-  },
-  {
-    name: 'KitKat',
-    calories: 518,
-    fat: 26.0,
-    carbs: 65
-  }
-]
-
-
-
-
-    const $q = useQuasar()
-
-    const name = ref(null)
-  
-     const filter = ref('')
-     
-      
-     const onSubmit = () => {
-       
-          $q.notify({
-            color: 'green-4',
+    const $q = useQuasar();
+    const gname = ref('');
+const description = ref('');
+    const { mutate: createGroup, isLoading2 } = useMutation({
+  mutationFn: async (groupData) => {
+    await contactStore.createGroups(groupData);
+    console.log("we here");
+    $q.notify({
+            color: 'blue-4',
             textColor: 'white',
             icon: 'cloud_done',
-            message: 'Submitted'
+            message: 'Group Created'
           })
-        
-      }
+  },
+});
+const { mutate: deleteGroup } = useMutation({
+  mutationFn: async (groupId) => {
+    // Dispatch action to create contact in Vuex store
+    await contactStore.deleteGroups(groupId);
+            $q.notify({
+            color: 'blue-4',
+            textColor: 'white',
+            icon: 'cloud_done',
+            message: 'Group Deleted'
+          })
+  },
+});
 
-    const  onReset = () => {
-        name.value = null
-      }
+const { mutate: updateGroup } = useMutation({
+  mutationFn: async ({ groupId, groupData }) => {
+    // Dispatch action to update contact in Vuex store
+    await contactStore.updateGroups(groupId, groupData);
+    console.log("we here", groupId, groupData);
+            $q.notify({
+            color: 'blue-4',
+            textColor: 'white',
+            icon: 'cloud_done',
+            message: 'Group Updated'
+          })
+  },
+});
+const selectedGroupId = ref(null);
+
+const onUpdate = (row) => {
+  selectedGroupId.value = row.id;
+  gname.value = row.group_name;
+  description.value = row.description;
   
+}
+
+const onDelete = async (row) => {
+  console.log('Delete row:', row.id)
+  await deleteGroup(row.id);
+}
+const onSubmit = async () => {
+  const groupData = {
+    group_name: gname.value,
+    description: description.value,
+   
+  };
+
+if (selectedGroupId.value!==null) {
+  const groupData = {
+    group_name: gname.value,
+    description: description.value,
+    
+  };
+ const groupId = selectedGroupId.value;
+  await updateGroup({ groupId, groupData });
+    
+} else {
+await createGroup(groupData);
+  
+}
+
+selectedGroupId.value = null;
+  onReset();
+};
+
+     const onReset = () => {
+      gname.value = '';
+      description.value = '';
+  
+    }   
 </script>

@@ -1,46 +1,62 @@
-
 <template>
-    <div class="q-pa-md" style="max-width: 400px">
+    <div class="q-pa-md"     style="display: flex; justify-content: flex-end;"
+>
   
   <q-form
     @submit="onSubmit"
     @reset="onReset"
-    class="q-gutter-md q-dense"
-  >
+    class="q-gutter-md q-dense q-pa-md"
+    style="min-width: 70%"
+      >
     <q-input
-      filled
-      v-model="name"
+    dense
+          v-model="fname"
       label="first_name *"
       lazy-rules
       :rules="[ val => val && val.length > 0 || '']"
+      class="q-mb-md"
     />
     <q-input
-      filled
-      v-model="name"
+    dense
+          v-model="lname"
       label="last_name"
       
     />
     <q-input
-      filled
-      v-model="name"
+    dense
+          v-model="email"
       label="email"
       
     />
     <q-input
-      filled
-      v-model="name"
+    dense
+          v-model="phoneno"
       label="phone_number *"
       lazy-rules
       :rules="[ val => val && val.length > 0 || '']"
     />
     <q-input
-      filled
-      v-model="name"
+    dense
+      v-model="address"
       label="address "
-   
+      
     />
    
-    <q-select filled v-model="model" :options="options" label="Filled" />  
+      
+   
+        <q-select
+    v-model="group"
+    multiple
+    dense
+    options-dense
+    emit-value
+    :options="groupOptions"
+    option-value="group_name"
+    option-label="group_name"
+    options-cover
+    style="min-width: 150px"
+    label="Groups"
+  />
     <div>
       <q-btn label="Submit" type="submit" color="primary"/>
       <q-btn label="Reset" type="reset" color="primary" flat class="q-ml-sm" />
@@ -48,200 +64,196 @@
   </q-form>
 
 </div>
-  <div class="q-pa-md">
+ <div v-if="isLoading">Loading... 
+ </div>
+  <div v-else class="q-pa-md">
+   
     <q-table
       style="height: 400px"
       flat bordered
-      title="Treats"
-      :rows="rows"
-      :columns="columns"
-      row-key="index"
+      title="Contacts"
+      :rows=allContacts
+      :columns="columns.filter(col => col.name !== 'id')"      
+      row-key="first_name"
       virtual-scroll
-      v-model:pagination="pagination"
-      :rows-per-page-options="[0]"
-    />
+            >
+            
+     '
+      <template v-slot:body="props">
+        <q-tr :props="props">
+         
+          <q-td
+            v-for="col in props.cols"
+            :key="col.name"
+            :props="props"
+          >
+            {{ col.value }}
+          </q-td>
+          <q-td auto-width>
+            <q-btn
+              size="sm"
+              color="primary"
+              round
+              dense
+              icon="edit"
+              @click="onUpdate(props.row)"
+            />
+            <q-btn
+              size="sm"
+              color="negative"
+              round
+              dense
+              icon="delete"
+              @click="onDelete(props.row)"
+            />
+          </q-td>
+        </q-tr>
+        
+      </template>
+    </q-table>
   </div>
+  
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed  } from 'vue'
 import { useQuasar } from 'quasar'
+import { useContactStore } from "src/stores/contact_store";
+import { useQuery, useMutation } from "vue-query";
 
+const contactStore = useContactStore();
+const { data: allContacts, isLoading: isLoading, error: error, refetch: refetch } = useQuery("contacts", contactStore.fetchContacts);
 
-const $q = useQuasar()
+const { data: allGroups, isLoading: isLoadingG, error: errorG, refetch: refetchG } = useQuery("contacts", contactStore.fetchGroups);
 
-    const name = ref(null)
-    const age = ref(null)
-    const accept = ref(false)
+const groupOptions = computed(() => {
+  const groupsSet = new Set();
+  allGroups.value?.forEach(contact => {
+    contact.groups?.forEach(group => {
+      groupsSet.add({ id: group.id, group_name: group.group_name });
+    });
+  });
+  return Array.from(groupsSet).map(group_name => ({ group_name }));
+});
+const $q = useQuasar();
+const fname = ref('');
+const lname = ref('');
+const email = ref('');
+const phoneno = ref('');
+const address = ref('');
+const group= ref('');
 const columns = [
-  {
-    name: 'index',
-    label: '#',
-    field: 'index'
-  },
-  {
-    name: 'name',
-    required: true,
-    label: 'Dessert (100g serving)',
-    align: 'left',
-    field: row => row.name,
-    format: val => `${val}`,
-    sortable: true
-  },
-  { name: 'calories', align: 'center', label: 'Calories', field: 'calories', sortable: true },
-  { name: 'fat', label: 'Fat (g)', field: 'fat', sortable: true },
-  { name: 'carbs', label: 'Carbs (g)', field: 'carbs' },
-  { name: 'protein', label: 'Protein (g)', field: 'protein' },
-  { name: 'sodium', label: 'Sodium (mg)', field: 'sodium' },
-  { name: 'calcium', label: 'Calcium (%)', field: 'calcium', sortable: true, sort: (a, b) => parseInt(a, 10) - parseInt(b, 10) },
-  { name: 'iron', label: 'Iron (%)', field: 'iron', sortable: true, sort: (a, b) => parseInt(a, 10) - parseInt(b, 10) }
-]
-
-const seed = [
-  {
-    name: 'Frozen Yogurt',
-    calories: 159,
-    fat: 6.0,
-    carbs: 24,
-    protein: 4.0,
-    sodium: 87,
-    calcium: '14%',
-    iron: '1%'
-  },
-  {
-    name: 'Ice cream sandwich',
-    calories: 237,
-    fat: 9.0,
-    carbs: 37,
-    protein: 4.3,
-    sodium: 129,
-    calcium: '8%',
-    iron: '1%'
-  },
-  {
-    name: 'Eclair',
-    calories: 262,
-    fat: 16.0,
-    carbs: 23,
-    protein: 6.0,
-    sodium: 337,
-    calcium: '6%',
-    iron: '7%'
-  },
-  {
-    name: 'Cupcake',
-    calories: 305,
-    fat: 3.7,
-    carbs: 67,
-    protein: 4.3,
-    sodium: 413,
-    calcium: '3%',
-    iron: '8%'
-  },
-  {
-    name: 'Gingerbread',
-    calories: 356,
-    fat: 16.0,
-    carbs: 49,
-    protein: 3.9,
-    sodium: 327,
-    calcium: '7%',
-    iron: '16%'
-  },
-  {
-    name: 'Jelly bean',
-    calories: 375,
-    fat: 0.0,
-    carbs: 94,
-    protein: 0.0,
-    sodium: 50,
-    calcium: '0%',
-    iron: '0%'
-  },
-  {
-    name: 'Lollipop',
-    calories: 392,
-    fat: 0.2,
-    carbs: 98,
-    protein: 0,
-    sodium: 38,
-    calcium: '0%',
-    iron: '2%'
-  },
-  {
-    name: 'Honeycomb',
-    calories: 408,
-    fat: 3.2,
-    carbs: 87,
-    protein: 6.5,
-    sodium: 562,
-    calcium: '0%',
-    iron: '45%'
-  },
-  {
-    name: 'Donut',
-    calories: 452,
-    fat: 25.0,
-    carbs: 51,
-    protein: 4.9,
-    sodium: 326,
-    calcium: '2%',
-    iron: '22%'
-  },
-  {
-    name: 'KitKat',
-    calories: 518,
-    fat: 26.0,
-    carbs: 65,
-    protein: 7,
-    sodium: 54,
-    calcium: '12%',
-    iron: '6%'
+{ name: 'id', hidden:true, label: 'ID', field: 'id', sortable: true,  align: 'left' },
+  { name: 'first_name', required: true, label: 'First Name', field: 'first_name', sortable: true, align: 'left' },
+  { name: 'last_name', label: 'Last Name', field: 'last_name', sortable: true, align: 'left' },
+  { name: 'email', label: 'Email', field: 'email', sortable: true, align: 'left' },
+  { name: 'phone_number', required: true, label: 'Phone Number', field: 'phone_number', sortable: true, align: 'left' },
+  { name: 'address', label: 'Address', field: 'address', sortable: true, align: 'left' },
+   {
+    name: 'groups',
+    label: 'Groups',
+    field: row => {
+      if (row.groups && row.groups.length > 0) {
+        return row.groups.map(group => group.group_name).join(', ');
+      } else {
+        return ''; // Or any default value you want to display when data is not available
+      }
+    },
+    sortable: false,
+    align: 'left'
   }
-]
+];
 
-// we generate lots of rows here
-let rows = []
-for (let i = 0; i < 1000; i++) {
-  rows = rows.concat(seed.slice(0).map(r => ({ ...r })))
-}
-rows.forEach((row, index) => {
-  row.index = index
-})
-
-
-   
-
-      const model = ref(null)
-     const  options = [
-        'Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'
-      ]
-//       import { useQuery } from "vue-query";
-// const { data: all, isLoading: isLoading, error: error, refetch: refetch } = useQuery();
-
-      const onSubmit = () => {
-      
-          $q.notify({
-            color: 'green-4',
+const { mutate: createContact, isLoading2 } = useMutation({
+  mutationFn: async (contactData) => {
+    await contactStore.createContacts(contactData);
+    $q.notify({
+            color: 'blue-4',
             textColor: 'white',
             icon: 'cloud_done',
-            message: 'Submitted'
+            message: 'Contact Created'
           })
-        
-      }
+  },
+});
+const { mutate: deleteContact } = useMutation({
+  mutationFn: async (contactId) => {
+    // Dispatch action to create contact in Vuex store
+    await contactStore.deleteContacts(contactId);
+            $q.notify({
+            color: 'blue-4',
+            textColor: 'white',
+            icon: 'cloud_done',
+            message: 'Contact Deleted'
+          })
+  },
+});
 
-     
-      const onReset = () => {
-  name.value = null
-  age.value = null
-  accept.value = false
+const { mutate: updateContact } = useMutation({
+  mutationFn: async ({ contactId, contactData }) => {
+    // Dispatch action to update contact in Vuex store
+    await contactStore.updateContacts(contactId, contactData);
+    console.log("we here", contactId, contactData);
+            $q.notify({
+            color: 'blue-4',
+            textColor: 'white',
+            icon: 'cloud_done',
+            message: 'Contact Updated'
+          })
+  },
+});
+const selectedContactId = ref(null);
+
+const onUpdate = (row) => {
+  selectedContactId.value = row.id;
+  fname.value = row.first_name;
+  lname.value = row.last_name;
+  email.value = row.email;
+  phoneno.value = row.phone_number;
+  address.value = row.address;
 }
-     
 
-      const pagination = ref({
-  rowsPerPage: 0
-})
+const onDelete = async (row) => {
+  console.log('Delete row:', row.id)
+  await deleteContact(row.id);
+}
+const onSubmit = async () => {
+  const contactData = {
+    first_name: fname.value,
+    last_name: lname.value,
+    email: email.value,
+    phone: phoneno.value,
+    address: address.value,
+    group_id: group.value,
+  };
+
+if (selectedContactId.value!==null) {
+  const contactData = {
+    first_name: fname.value,
+    last_name: lname.value,
+    email: email.value,
+    phone: phoneno.value,
+    address: address.value,
+    group_id: group.value,
+  };
+ const contactId = selectedContactId.value;
+  await updateContact({ contactId, contactData });
     
+} else {
+await createContact(contactData);
+  
+}
+
+selectedContactId.value = null;
+  onReset();
+};
+
+     const onReset = () => {
+      fname.value = '';
+  lname.value = '';
+  email.value = '';
+  phoneno.value = '';
+ address.value = '';
+    }   
 
 </script>
 <style>
