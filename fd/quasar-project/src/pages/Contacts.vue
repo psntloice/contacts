@@ -51,7 +51,7 @@
     options-dense
     emit-value
     :options=groupOptions
-    option-value="group_name"
+    option-value="id"
     option-label="group_name"
     options-cover
     style="min-width: 150px"
@@ -127,11 +127,13 @@ const { data: allContacts, isLoading: isLoading, error: error, refetch: refetch 
 const { data: allGroups, isLoading: isLoadingG, error: errorG, refetch: refetchG } = useQuery("contacts", contactStore.fetchGroups);
 
 const groupOptions = computed(() => {
-  const groupsSet = new Set();
+  const groupsMap = new Map();
   allGroups.value?.forEach(group => {
-      groupsSet.add(group.group_name);
-    });
-  return Array.from(groupsSet).map(group_name => ({ group_name }));
+    if (!groupsMap.has(group.group_name)) {
+      groupsMap.set(group.group_name, { id: group.id, group_name: group.group_name });
+    }
+  });
+  return Array.from(groupsMap.values());
 });
 
 console.log(groupOptions);
@@ -142,7 +144,7 @@ const lname = ref('');
 const email = ref('');
 const phoneno = ref('');
 const address = ref('');
-const group= ref('');
+const group=  ref([]);
 const columns = [
 { name: 'id', hidden:true, label: 'ID', field: 'id', sortable: true,  align: 'left' },
   { name: 'first_name', required: true, label: 'First Name', field: 'first_name', sortable: true, align: 'left' },
@@ -211,6 +213,7 @@ const onUpdate = (row) => {
   email.value = row.email;
   phoneno.value = row.phone_number;
   address.value = row.address;
+  
 }
 
 const onDelete = async (row) => {
@@ -222,9 +225,9 @@ const onSubmit = async () => {
     first_name: fname.value,
     last_name: lname.value,
     email: email.value,
-    phone: phoneno.value,
+    phone_number: phoneno.value,
     address: address.value,
-    group_id: group.value,
+    group_ids: group.value,
   };
 
 if (selectedContactId.value!==null) {
@@ -232,14 +235,17 @@ if (selectedContactId.value!==null) {
     first_name: fname.value,
     last_name: lname.value,
     email: email.value,
-    phone: phoneno.value,
+    phone_number: phoneno.value,
     address: address.value,
-    group_id: group.value,
+    group_ids: group.value,
   };
+  console.log("val", phoneno.value,group.value);
  const contactId = selectedContactId.value;
   await updateContact({ contactId, contactData });
     
 } else {
+  console.log("val2", phoneno.value,group.value);
+
 await createContact(contactData);
   
 }

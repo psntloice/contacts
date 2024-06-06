@@ -50,7 +50,7 @@ public function groupedContacts()
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:contacts',
-            'phone' => 'nullable|string|max:255',
+            'phone_number' => 'nullable|string|max:255',
             'address' => 'required|string|max:255',
 
             'group_ids' => 'array',
@@ -71,7 +71,7 @@ public function groupedContacts()
             'first_name' => 'sometimes|required|string|max:255',
             'last_name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|string|email|max:255|unique:contacts,email,' . $contact->id,
-            'phone' => 'nullable|string|max:255',
+            'phone_number' => 'nullable|string|max:255',
             'group_ids' => 'array',
             'group_ids.*' => 'exists:groups,id',
         ]);
